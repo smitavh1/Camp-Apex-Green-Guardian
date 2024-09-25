@@ -1,4 +1,4 @@
-trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after insert) {
+trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after insert, after update) {
 
      switch on Trigger.operationType {
         when BEFORE_INSERT {
@@ -10,6 +10,12 @@ trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after ins
         when AFTER_INSERT {
             GardenTriggerHandler.afterInsertTaskCreation(Trigger.new);
 
+            
+        }
+
+        when AFTER_UPDATE {
+            GardenTriggerHandler.afterUpdateUpdateTask(Trigger.newMap, Trigger.oldMap);
+            GardenTriggerHandler.afterUpdateCreateTask(Trigger.new, Trigger.oldMap);
             
         }
     }
