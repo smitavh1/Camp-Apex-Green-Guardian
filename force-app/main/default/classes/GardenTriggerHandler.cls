@@ -57,7 +57,88 @@ System.debug(newTasksToBeInserted);
 
 
     
+        public static void afterUpdateUpdateTask(MAP<Id, CAMPX__Garden__c> updatedGardenRecords, Map<Id,CAMPX__Garden__c> OldGardenRecords) {
+            List<Task> tasksCreatedForUpdatedGardenRecords = new List<Task>();
 
+            Set<Id> gardenIds = new Set<Id>();
+                    
+            // For each updated Manager for garden the tasks should be reassigned to the new Manager
+            for (CAMPX__Garden__c updatedGardenRecord : updatedGardenRecords.values()) {
+                // Get the old version of the record
+                CAMPX__Garden__c oldGardenRecord = OldGardenRecords.get(updatedGardenRecord.Id);
+        
+                              // If Manager has changed, we need to update existing tasks
+                if (oldGardenRecord.CAMPX__Manager__c != updatedGardenRecord.CAMPX__Manager__c) {
+                    gardenIds.add(updatedGardenRecord.Id);
+                }
+                System.debug(gardenIds);
+            }
+
+
+            //Query the tasks for all the gardenId's
+            
+                    List<Task> tasksTobeUpdated = [SELECT Id, OwnerId, Status, Subject,WhatId 
+                                                   FROM Task 
+                                                   WHERE WhatId IN :gardenIds
+                                                   AND Subject = 'Acquire Plants' 
+                                                   AND Status != 'Completed'];
+                                                   System.debug(tasksTobeUpdated);
+        
+                    for (Task eachTaskToBeUpdated : tasksTobeUpdated) {
+                        // Update the owner of the task if criteria match
+                        //Get the Garden record
+                        Id ManagerId = updatedGardenRecords.get(eachTaskToBeUpdated.WhatId).CAMPX__Manager__c;
+                        
+                        eachTaskToBeUpdated.OwnerId = ManagerId;
+                        tasksCreatedForUpdatedGardenRecords.add(eachTaskToBeUpdated);
+                        
+                    }
+         
+         
+                 
+        
+            // Update existing tasks after all iterations
+            if (!tasksCreatedForUpdatedGardenRecords.isEmpty()) {
+                System.debug(tasksCreatedForUpdatedGardenRecords);
+                update tasksCreatedForUpdatedGardenRecords;
+            }
+        }
+        
+
+
+// Part2 - Create Task
+
+public static void afterUpdateCreateTask(List<CAMPX__Garden__c> updatedGardenRecords, Map<Id,CAMPX__Garden__c> OldGardenRecords) {
+    List<Task> newTasksToBeInserted = new List<Task>();
+
+            
+    // For each updated Garden record with a Manager a task should be created.
+    for (CAMPX__Garden__c updatedGardenRecord : updatedGardenRecords) {
+        // Get the old version of the record
+        CAMPX__Garden__c oldGardenRecord = OldGardenRecords.get(updatedGardenRecord.Id);
+
+        // Check if the old lookup field was null and the new lookup field is not null
+        if (oldGardenRecord.CAMPX__Manager__c == null && updatedGardenRecord.CAMPX__Manager__c != null) {
+            System.debug('Lookup field changed from null to non-null!');
+            
+            // Add logic to create a new task
+            Task newTask = new Task();
+            newTask.Subject = 'Acquire Plants';
+            newTask.WhatId = updatedGardenRecord.Id;
+            newTask.OwnerId = updatedGardenRecord.CAMPX__Manager__c;
+            newTasksToBeInserted.add(newTask);
+        }
+
+            }
+
+    // Insert new tasks after all iterations
+    if (!newTasksToBeInserted.isEmpty()) {
+        insert newTasksToBeInserted;
     }
 
+    
+}
+
+
+}
 
