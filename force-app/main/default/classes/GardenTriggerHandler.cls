@@ -68,7 +68,7 @@ System.debug(newTasksToBeInserted);
                 CAMPX__Garden__c oldGardenRecord = OldGardenRecords.get(updatedGardenRecord.Id);
         
                               // If Manager has changed, we need to update existing tasks
-                if (oldGardenRecord.CAMPX__Manager__c != updatedGardenRecord.CAMPX__Manager__c) {
+                if (oldGardenRecord.CAMPX__Manager__c != updatedGardenRecord.CAMPX__Manager__c && updatedGardenRecord.CAMPX__Manager__c != null) {
                     gardenIds.add(updatedGardenRecord.Id);
                 }
                 System.debug(gardenIds);
@@ -137,6 +137,92 @@ public static void afterUpdateCreateTask(List<CAMPX__Garden__c> updatedGardenRec
     }
 
     
+}
+
+
+public static void afterUpdateDeleteTask(Map<Id,CAMPX__Garden__c>  updatedMapWithNoManagerGardenRecords, Map<Id,CAMPX__Garden__c> OldGardenRecords){
+
+    // Storing GardenIds
+    Set<Id> gardenIds = new Set<Id>();
+    List<Task> tasksOfGardenRecordToBeDeleted = new List<Task>();
+
+   // For each removed Manager for garden the tasks should be deleted.
+   for (CAMPX__Garden__c removedGardenRecord : updatedMapWithNoManagerGardenRecords.values()) {
+    // Get the old version of the record
+    CAMPX__Garden__c oldGardenRecord = OldGardenRecords.get(removedGardenRecord.Id);
+
+                  // If Manager has been emptied out then we delete existing tasks
+    if (oldGardenRecord.CAMPX__Manager__c != null && removedGardenRecord.CAMPX__Manager__c == null) {
+        gardenIds.add(removedGardenRecord.Id);
+    }
+    System.debug(gardenIds);
+}
+
+// Query all the tasks to be deleted for all the garden Ids.
+
+ //Query the tasks for all the gardenId's
+            
+ List<Task> tasksTobeDeleted = [SELECT Id, OwnerId, Status, Subject,WhatId 
+ FROM Task 
+ WHERE WhatId IN :gardenIds
+ AND Subject = 'Acquire Plants' 
+ AND Status != 'Completed'];
+ System.debug(tasksTobeDeleted);
+  
+    //Delete all the tasks of the Garden record if the Manager is removed from the record. 
+
+    for (Task eachTaskToBeDeleted : tasksTobeDeleted) {
+       
+        tasksOfGardenRecordToBeDeleted.add(eachTaskToBeDeleted);
+        
+    }
+
+
+
+// Update existing tasks after all iterations
+if (!tasksOfGardenRecordToBeDeleted.isEmpty()) {
+System.debug(tasksOfGardenRecordToBeDeleted);
+delete tasksOfGardenRecordToBeDeleted;
+}
+
+
+
+
+
+}
+
+public static void beforeInsertSetManagerStartDate(List<CAMPX__Garden__c> newGardenRecsWithManagers){
+
+    for(CAMPX__Garden__c eachGardenRecWithManager : newGardenRecsWithManagers){
+
+        if(eachGardenRecWithManager.CAMPX__Manager__c != null){
+
+            eachGardenRecWithManager.CAMPX__Manager_Start_Date__c = Datetime.now().date();
+        }
+           }
+}
+
+public static void beforeUpdateIfManagersDateIsCleared(List<CAMPX__Garden__c> newGardenRecsWithManagers, Map<Id,CAMPX__Garden__c> oldVersionOfGRecords){
+
+    for(CAMPX__Garden__c eachGardenRecWithManager : newGardenRecsWithManagers){
+
+        CAMPX__Garden__c oldVersionOfTheRecord = oldVersionOfGRecords.get(eachGardenRecWithManager.id);
+        System.debug(oldVersionOfTheRecord);
+        System.debug('Old Manager: ' + oldVersionOfTheRecord.CAMPX__Manager__c);
+
+
+        if(eachGardenRecWithManager.CAMPX__Manager__c == null && oldVersionOfTheRecord.CAMPX__Manager__c != null ){
+
+            eachGardenRecWithManager.CAMPX__Manager_Start_Date__c = null;
+        }
+
+
+        if((oldVersionOfTheRecord.CAMPX__Manager__c == null && eachGardenRecWithManager.CAMPX__Manager__c != null) || (oldVersionOfTheRecord.CAMPX__Manager__c != eachGardenRecWithManager.CAMPX__Manager__c)){
+
+            eachGardenRecWithManager.CAMPX__Manager_Start_Date__c = date.today();
+        }
+
+}
 }
 
 
