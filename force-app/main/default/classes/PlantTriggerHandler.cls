@@ -61,4 +61,115 @@ public with sharing class PlantTriggerHandler {
 
    // update initialPlantRecords;
 }
+
+
+    // Method to handle plant count updates based on trigger context
+    public static void handlePlantCountUpdateOnPlantAddition(List<CAMPX__Plant__c> newPlants) {
+
+        // Set to track affected Garden IDs
+        Set<Id> gardenIdsToUpdate = new Set<Id>();
+
+        // Handling insert and undelete (plant is added)
+            for (CAMPX__Plant__c plant : newPlants) {
+              //  if (plant.CAMPX__Garden__c != null ) {
+                    gardenIdsToUpdate.add(plant.CAMPX__Garden__c);
+               // }
+
+
+                // // check if the Garden field on the plant has been emptied out now.
+                // if(plant.CAMPX__Garden__c == null){
+
+                //     CAMPX__Plant__c oldVersionOfPlant = updatedPlants.get(plant.CAMPX__Garden__c);
+                //    if( oldVersionOfPlant.CAMPX__Garden__c == plant.CAMPX__Garden__c){
+                //     gardenIdsToUpdate.add(plant.CAMPX__Garden__c);
+                //    }
+                    
+                // }
+            }
+        
+
+        // Query the garden records.
+List<CAMPX__Garden__c>  gardensWherePlantAdded= [SELECT Id, CAMPX__Total_Plant_Count__c FROM CAMPX__Garden__c WHERE Id IN :gardenIdsToUpdate];
+
+ // Query the garden which has lost plants
+// List<CAMPX__Garden__c> gardensWherePlantRemoved = [SELECT Id, CAMPX__Total_Plant_Count__c FROM CAMPX__Garden__c WHERE Id IN :gardenIdsToUpdate];
+for(CAMPX__Garden__c eachGarden : gardensWherePlantAdded){
+
+    // find the total number of updated plants for each garden
+   List <CAMPX__Plant__c> totalNoOfPlantsNow = [SELECT Id FROM CAMPX__Plant__c where CAMPX__Garden__c =:eachGarden.Id];
+
+    Integer totalPlantListSize = totalNoOfPlantsNow.size();
+    eachGarden.CAMPX__Total_Plant_Count__c = totalPlantListSize;
+
+   
+
+    // for(CAMPX__Garden__c eachGardenWithRemovedPlant: gardensWherePlantRemoved){
+
+    //     // find the total no of updated plants for each garden
+
+    //     List<CAMPX__Plant__c> totalNoOfPlantsAfterRemoval = [SELECT Id FROM CAMPX__Plant__c where CAMPX__Garden__c =:eachGardenWithRemovedPlant.Id];
+
+    //     Integer totalUpdatedPlantSize = totalNoOfPlantsAfterRemoval.size();
+    //     eachGardenWithRemovedPlant.CAMPX__Total_Plant_Count__c = totalUpdatedPlantSize;
+
+    // }
+
 }
+update gardensWherePlantAdded;
+
+    }
+
+
+    public static void handlePlantCountUpdateOnPlantUpdate( List<CAMPX__Plant__c> plantsUpdatedWithNoGarden, Map<Id,CAMPX__Plant__c> oldVersionOfPlantRecords)
+    {
+
+        // Set to track affected Garden IDs
+        Set<Id> gardenIdsToUpdate = new Set<Id>();
+
+        for (CAMPX__Plant__c plant : plantsUpdatedWithNoGarden) {
+
+            // Handling update (plant is removed from the Garden)
+            
+                    // check if plant did have a Garden populated earlier
+            
+                   CAMPX__Plant__c oldVersionOfPlant = oldVersionOfPlantRecords.get(plant.Id);
+            
+                   System.debug(oldVersionOfPlant);
+
+                   //Commented - (plant.CAMPX__Garden__c == null && oldVersionOfPlant.CAMPX__Garden__c !=null)  
+            
+                    if (oldVersionOfPlant.CAMPX__Garden__c != plant.CAMPX__Garden__c) {
+                        gardenIdsToUpdate.add(plant.CAMPX__Garden__c);
+                        gardenIdsToUpdate.add(oldVersionOfPlant.CAMPX__Garden__c);
+                    }
+                }
+
+        // Query the garden records along with its plants.
+List<CAMPX__Garden__c>  gardensWherePlantCountWasChanged= [SELECT Id,(SELECT Id FROM CAMPX__Plants__r), CAMPX__Total_Plant_Count__c FROM CAMPX__Garden__c WHERE Id IN :gardenIdsToUpdate];
+
+
+                
+for(CAMPX__Garden__c eachGardenWithChangedPlantCount : gardensWherePlantCountWasChanged){
+
+    List<CAMPX__Plant__c> totalPlantsOfEachGarden = eachGardenWithChangedPlantCount.CAMPX__Plants__r;
+
+    Integer totalPlantSizeAfterChange = totalPlantsOfEachGarden.size();
+    
+    eachGardenWithChangedPlantCount.CAMPX__Total_Plant_Count__c = totalPlantSizeAfterChange;
+
+}
+
+update gardensWherePlantCountWasChanged;
+
+    }
+
+    
+}
+
+
+
+
+
+
+
+

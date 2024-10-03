@@ -16,6 +16,17 @@ public with sharing class GardenTriggerHandler {
 
             newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c = newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != null ? newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c : 0;
 
+            if( newGardenRecord.CAMPX__Max_Plant_Count__c != null && newGardenRecord.CAMPX__Total_Plant_Count__c != null){
+
+                Decimal calculateCapacity = (newGardenRecord.CAMPX__Total_Plant_Count__c / newGardenRecord.CAMPX__Max_Plant_Count__c) * 100;
+            
+            newGardenRecord.CAMPX__Capacity__c = calculateCapacity;
+            }
+
+            else if(newGardenRecord.CAMPX__Max_Plant_Count__c == null || newGardenRecord.CAMPX__Total_Plant_Count__c == null){
+
+                newGardenRecord.CAMPX__Capacity__c = 0.0;
+            }
        
             }
 
@@ -222,8 +233,23 @@ public static void beforeUpdateIfManagersDateIsCleared(List<CAMPX__Garden__c> ne
             eachGardenRecWithManager.CAMPX__Manager_Start_Date__c = date.today();
         }
 
+
+        if( eachGardenRecWithManager.CAMPX__Max_Plant_Count__c != null && eachGardenRecWithManager.CAMPX__Total_Plant_Count__c != null && eachGardenRecWithManager.CAMPX__Max_Plant_Count__c > 0){
+
+            Decimal calculateCapacity = (eachGardenRecWithManager.CAMPX__Total_Plant_Count__c / eachGardenRecWithManager.CAMPX__Max_Plant_Count__c) * 100;
+        
+            eachGardenRecWithManager.CAMPX__Capacity__c = calculateCapacity;
+        }
+        else if(eachGardenRecWithManager.CAMPX__Max_Plant_Count__c == null  || eachGardenRecWithManager.CAMPX__Total_Plant_Count__c == null || eachGardenRecWithManager.CAMPX__Max_Plant_Count__c <= 0 ){
+
+            eachGardenRecWithManager.CAMPX__Capacity__c = 0.0;
+        }
+
+
+
 }
 }
+
 
 
 }
