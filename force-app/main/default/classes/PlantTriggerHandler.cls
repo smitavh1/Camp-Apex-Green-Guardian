@@ -146,8 +146,6 @@ update gardensWherePlantAdded;
 
         // Query the garden records along with its plants.
 List<CAMPX__Garden__c>  gardensWherePlantCountWasChanged= [SELECT Id,(SELECT Id FROM CAMPX__Plants__r), CAMPX__Total_Plant_Count__c FROM CAMPX__Garden__c WHERE Id IN :gardenIdsToUpdate];
-
-
                 
 for(CAMPX__Garden__c eachGardenWithChangedPlantCount : gardensWherePlantCountWasChanged){
 
@@ -162,6 +160,96 @@ for(CAMPX__Garden__c eachGardenWithChangedPlantCount : gardensWherePlantCountWas
 update gardensWherePlantCountWasChanged;
 
     }
+
+public static void calculateAggrUnhealthyPlantCount(List<CAMPX__Plant__c> plantsWithUnhealthyStatus){
+
+
+       // Set to track affected Garden IDs
+       Set<Id> gardenIdsToUpdate = new Set<Id>();
+
+       List<CAMPX__Plant__c> totalUnhealthyPlants = new List<CAMPX__Plant__c>();
+       for(CAMPX__Plant__c eachUnHealthyPlant : plantsWithUnhealthyStatus){
+   
+      
+     
+        gardenIdsToUpdate.add(eachUnHealthyPlant.CAMPX__Garden__c);
+
+       }
+
+             // Query all the gardens with subset of unhealthy plants in them.
+
+             List<CAMPX__Garden__c> allGardensWithTheirPlants = [SELECT Id,(SELECT Id,CAMPX__Status__c FROM CAMPX__Plants__r),CAMPX__Total_Unhealthy_Plant_Count__c FROM CAMPX__Garden__c WHERE Id IN :gardenIdsToUpdate];
+
+             for(CAMPX__Garden__c eachGardenWithUnhealthyPlants : allGardensWithTheirPlants){
+               
+        
+
+                List<CAMPX__Plant__c> totalPlantsOfEachGarden = eachGardenWithUnhealthyPlants.CAMPX__Plants__r;
+                           // Your logic here
+                           for(CAMPX__Plant__c eachPlant : totalPlantsOfEachGarden){
+                            if(eachPlant.CAMPX__Status__c == 'Sick' || 
+                            eachPlant.CAMPX__Status__c == 'Wilting' || 
+                            eachPlant.CAMPX__Status__c == 'Deceased')
+totalUnhealthyPlants.add(eachPlant);
+                           }
+   
+          
+
+                Integer totalUnhealthyPlantCount = totalUnhealthyPlants.size();
+
+                eachGardenWithUnhealthyPlants.CAMPX__Total_Unhealthy_Plant_Count__c = totalUnhealthyPlantCount;
+
+
+             }
+
+             update allGardensWithTheirPlants;
+
+
+}
+
+
+public static void calculateUnhealthyPlantCountAfterDelete(List<CAMPX__Plant__c> deletedIdToUnhealthyPlants){
+
+      // Set to track affected Garden IDs
+      Set<Id> gardenIdsToUpdate = new Set<Id>();
+
+      for(CAMPX__Plant__c eachDeletedPlant : deletedIdToUnhealthyPlants){
+        
+     
+        gardenIdsToUpdate.add(eachDeletedPlant.CAMPX__Garden__c);
+
+       }
+       // Query all the gardens with subset of unhealthy plants in them.
+
+       List<CAMPX__Garden__c> allGardensWithTheirDeletedPlants = [SELECT Id, 
+       (SELECT Id, CAMPX__Status__c FROM CAMPX__Plants__r WHERE CAMPX__Status__c IN ('Sick', 'Deceased', 'Wilted')), 
+       CAMPX__Total_Unhealthy_Plant_Count__c 
+FROM CAMPX__Garden__c 
+WHERE Id IN :gardenIdsToUpdate
+];
+
+
+for(CAMPX__Garden__c eachGardenWithDeletedPlant : allGardensWithTheirDeletedPlants){
+
+    List<CAMPX__Plant__c> totalUpdatedPlantsOfEachGarden = eachGardenWithDeletedPlant.CAMPX__Plants__r;
+
+    eachGardenWithDeletedPlant.CAMPX__Total_Unhealthy_Plant_Count__c = totalUpdatedPlantsOfEachGarden.size();
+
+
+}
+
+update allGardensWithTheirDeletedPlants;
+
+
+       
+
+
+}
+
+
+
+
+
 
     
 }
