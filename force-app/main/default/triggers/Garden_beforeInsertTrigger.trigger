@@ -5,6 +5,7 @@ trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after ins
             GardenTriggerHandler.beforeInsertPopulateGardenDetails(Trigger.new);
             GardenTriggerHandler.beforeInsertSetManagerStartDate(Trigger.new);
             GardenTriggerHandler.calculateHealthIndexOfGardenOnInsert(Trigger.new);
+            GardenTriggerHandler.setGardenStatusBasedOnConditions(Trigger.new);
 
             
         }
@@ -13,6 +14,8 @@ trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after ins
 
             GardenTriggerHandler.beforeUpdateIfManagersDateIsCleared(Trigger.new, Trigger.oldMap);
             GardenTriggerHandler.calculateHealthIndexOfGardenOnUpdate(Trigger.new, Trigger.oldMap);
+            GardenTriggerHandler.setGardenStatusBasedOnConditions(Trigger.new);
+
 
         }
 
