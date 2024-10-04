@@ -276,13 +276,60 @@ public static void calculateHealthIndexOfGardenOnInsert(List<CAMPX__Garden__c> g
 
 for(CAMPX__Garden__c eachGardenRecord : gardenRecords){
 
-    if (eachGardenRecord.CAMPX__Total_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Plant_Count__c || eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Unhealthy_Plant_Count__c){
+    if ((eachGardenRecord.CAMPX__Total_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Plant_Count__c && eachGardenRecord.CAMPX__Total_Plant_Count__c > 0) || eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Unhealthy_Plant_Count__c){
 
         eachGardenRecord.CAMPX__Health_Index__c = ((eachGardenRecord.CAMPX__Total_Plant_Count__c - eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c)/ eachGardenRecord.CAMPX__Total_Plant_Count__c) * 100;
     }
 }
 
 
+    }
+
+
+    // Set Garden Status based on Capacity,Total Plant Count,Min Plant Count, HealthIndex
+
+    public static void setGardenStatusBasedOnConditions( List<CAMPX__Garden__c> gardensToBeSetWithStatus){
+
+        for(CAMPX__Garden__c eachGarden : gardensToBeSetWithStatus){
+
+            
+            if (eachGarden.CAMPX__Status__c == 'Permanent Closure'){
+
+                eachGarden.CAMPX__Status__c = 'Permanent Closure';
+            }
+
+
+           else if (eachGarden.CAMPX__Capacity__c >= 70 &&
+    eachGarden.CAMPX__Capacity__c <= 100 &&
+    eachGarden.CAMPX__Total_Plant_Count__c >= eachGarden.CAMPX__Minimum_Plant_Count__c &&
+    eachGarden.CAMPX__Health_Index__c >= 70) {
+    // Your code here
+    eachGarden.CAMPX__Status__c = 'Operational';
+
+}
+
+            else if( eachGarden.CAMPX__Capacity__c == 0.0){
+
+                eachGarden.CAMPX__Status__c = 'Temporary Closure';
+            }
+
+            else if(eachGarden.CAMPX__Capacity__c > 100 ){
+
+                eachGarden.CAMPX__Status__c = 'Over Capacity';
+            }
+
+    
+
+            else if((eachGarden.CAMPX__Capacity__c > 0 && eachGarden.CAMPX__Capacity__c < 70) || 
+        eachGarden.CAMPX__Health_Index__c < 70 || 
+        eachGarden.CAMPX__Minimum_Plant_Count__c > eachGarden.CAMPX__Total_Plant_Count__c) {
+
+    eachGarden.CAMPX__Status__c = 'Awaiting Resources';
+}
+
+
+
+                    }
     }
 
 
