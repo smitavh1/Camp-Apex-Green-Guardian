@@ -248,9 +248,50 @@ public static void beforeUpdateIfManagersDateIsCleared(List<CAMPX__Garden__c> ne
 
 
 }
+
+
+}
+
+
+// Calculate Health Index considering "Total Plant Count" or "Total Unhealthy Plant Count"
+
+public static void calculateHealthIndexOfGardenOnInsert(List<CAMPX__Garden__c> gardenRecords){
+
+    for(CAMPX__Garden__c eachGarden : gardenRecords){
+
+
+        if(eachGarden.CAMPX__Total_Plant_Count__c != null && eachGarden.CAMPX__Total_Plant_Count__c > 0){
+
+            eachGarden.CAMPX__Health_Index__c = ((eachGarden.CAMPX__Total_Plant_Count__c - eachGarden.CAMPX__Total_Unhealthy_Plant_Count__c) / eachGarden.CAMPX__Total_Plant_Count__c) * 100;
+
+                    }
+                    else {
+                        eachGarden.CAMPX__Health_Index__c = 0.0;
+                    }
+
+    }
+
+}
+    public static void calculateHealthIndexOfGardenOnUpdate(List<CAMPX__Garden__c> gardenRecords, Map<Id,CAMPX__Garden__c> oldVIdToGardenRecords){
+
+for(CAMPX__Garden__c eachGardenRecord : gardenRecords){
+
+    if (eachGardenRecord.CAMPX__Total_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Plant_Count__c || eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Unhealthy_Plant_Count__c){
+
+        eachGardenRecord.CAMPX__Health_Index__c = ((eachGardenRecord.CAMPX__Total_Plant_Count__c - eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c)/ eachGardenRecord.CAMPX__Total_Plant_Count__c) * 100;
+    }
+}
+
+
+    }
+
+
 }
 
 
 
-}
+
+
+
+
 
