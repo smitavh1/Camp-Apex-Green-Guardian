@@ -276,7 +276,7 @@ public static void calculateHealthIndexOfGardenOnInsert(List<CAMPX__Garden__c> g
 
 for(CAMPX__Garden__c eachGardenRecord : gardenRecords){
 
-    if ((eachGardenRecord.CAMPX__Total_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Plant_Count__c && eachGardenRecord.CAMPX__Total_Plant_Count__c > 0) || eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Unhealthy_Plant_Count__c){
+    if ((eachGardenRecord.CAMPX__Total_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Plant_Count__c && eachGardenRecord.CAMPX__Total_Plant_Count__c > 0) || (eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != oldVIdToGardenRecords.get(eachGardenRecord.Id).CAMPX__Total_Unhealthy_Plant_Count__c && eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c > 0 )){
 
         eachGardenRecord.CAMPX__Health_Index__c = ((eachGardenRecord.CAMPX__Total_Plant_Count__c - eachGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c)/ eachGardenRecord.CAMPX__Total_Plant_Count__c) * 100;
     }
@@ -330,6 +330,17 @@ for(CAMPX__Garden__c eachGardenRecord : gardenRecords){
 
 
                     }
+    }
+
+    public static void gardenAllowOnlyPositiveValues(List<CAMPX__Garden__c> gardenRecords){
+
+        for(CAMPX__Garden__c eachGarden : gardenRecords){
+
+            if(eachGarden.CAMPX__Max_Plant_Count__c < 0 || eachGarden.CAMPX__Minimum_Plant_Count__c < 0 || eachGarden.CAMPX__Total_Plant_Count__c < 0 || eachGarden.CAMPX__Total_Unhealthy_Plant_Count__c < 0){
+
+                eachGarden.addError('Plant Count fields must be greater than or equal to zero');
+            }
+        }
     }
 
 
