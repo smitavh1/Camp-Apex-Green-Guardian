@@ -11,7 +11,7 @@ public with sharing class GardenTriggerHandler {
 
             newGardenRecord.CAMPX__Status__c = newGardenRecord.CAMPX__Status__c != null ? newGardenRecord.CAMPX__Status__c : 'Awaiting Resources';
             newGardenRecord.CAMPX__Max_Plant_Count__c = newGardenRecord.CAMPX__Max_Plant_Count__c != null ? newGardenRecord.CAMPX__Max_Plant_Count__c : 100;
-            newGardenRecord.CAMPX__Minimum_Plant_Count__c = newGardenRecord.CAMPX__Minimum_Plant_Count__c != null ? newGardenRecord.CAMPX__Minimum_Plant_Count__c : 1;
+           newGardenRecord.CAMPX__Minimum_Plant_Count__c = newGardenRecord.CAMPX__Minimum_Plant_Count__c != null ? newGardenRecord.CAMPX__Minimum_Plant_Count__c : 1;
             newGardenRecord.CAMPX__Total_Plant_Count__c = newGardenRecord.CAMPX__Total_Plant_Count__c != null ? newGardenRecord.CAMPX__Total_Plant_Count__c : 0;
 
             newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c = newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c != null ? newGardenRecord.CAMPX__Total_Unhealthy_Plant_Count__c : 0;
@@ -343,6 +343,58 @@ for(CAMPX__Garden__c eachGardenRecord : gardenRecords){
         }
     }
 
+    // public static void gardenOnlyAllowNonBlankValues( List<CAMPX__Garden__c> gardenRecords){
+
+
+    //     for(CAMPX__Garden__c eachGarden : gardenRecords){
+
+    //         if (eachGarden.CAMPX__Total_Plant_Count__c >= 0 && eachGarden.CAMPX__Max_Plant_Count__c == null  || eachGarden.CAMPX__Minimum_Plant_Count__c == null) {
+
+    //             eachGarden.addError('Maximum and Minimum Plant Count fields cannot be blank when there are plants in the Garden.');
+    //         }
+            
+    //               }
+    // }
+
+
+    public static void gardenOnlyAllowNonBlankValues(List<CAMPX__Garden__c> gardenRecords) {
+        for (CAMPX__Garden__c eachGarden : gardenRecords) {
+            // Check if Total Plant Count is greater than 0
+            if (eachGarden.CAMPX__Total_Plant_Count__c > 0) {
+                // If either Max or Minimum Plant Count is null, add an error
+                System.debug(eachGarden.CAMPX__Total_Plant_Count__c);
+                if (eachGarden.CAMPX__Max_Plant_Count__c == null || eachGarden.CAMPX__Minimum_Plant_Count__c == null) {
+                  //  eachGarden.addError('Maximum and Minimum Plant Count fields cannot be blank when there are plants in the Garden.');
+                  //  eachGarden.CAMPX__Minimum_Plant_Count__c.addError('Maximum and Minimum Plant Count fields cannot be blank when there are plants in the Garden.');
+
+               
+                }
+
+            } else if (eachGarden.CAMPX__Total_Plant_Count__c == 0) {
+                // Ensure if Total Plant Count is 0, Maximum and Minimum Plant Counts should be blank
+              eachGarden.CAMPX__Max_Plant_Count__c = null;
+             // eachGarden.addError('Maximum and Minimum Plant Count fields cannot be blank when there are plants in the Garden.');
+
+
+                eachGarden.CAMPX__Minimum_Plant_Count__c = null;
+                    
+            }
+
+            if(eachGarden.CAMPX__Max_Plant_Count__c != null || eachGarden.CAMPX__Minimum_Plant_Count__c != null){
+
+                if(eachGarden.CAMPX__Max_Plant_Count__c < eachGarden.CAMPX__Minimum_Plant_Count__c){
+
+                    eachGarden.addError('The Maximum Plant Count must be greater than or equal to the Minimum Plant Count');
+                }
+            }
+    
+                  }
+    }
+
+
+   
+
+   
 
 }
 

@@ -7,6 +7,7 @@ trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after ins
             GardenTriggerHandler.calculateHealthIndexOfGardenOnInsert(Trigger.new);
             GardenTriggerHandler.setGardenStatusBasedOnConditions(Trigger.new);
             GardenTriggerHandler.gardenAllowOnlyPositiveValues(Trigger.new);
+            GardenTriggerHandler.gardenOnlyAllowNonBlankValues(Trigger.new);
 
             
         }
@@ -17,6 +18,8 @@ trigger Garden_beforeInsertTrigger on CAMPX__Garden__c (before insert, after ins
             GardenTriggerHandler.calculateHealthIndexOfGardenOnUpdate(Trigger.new, Trigger.oldMap);
             GardenTriggerHandler.setGardenStatusBasedOnConditions(Trigger.new);
             GardenTriggerHandler.gardenAllowOnlyPositiveValues(Trigger.new);
+            GardenTriggerHandler.gardenOnlyAllowNonBlankValues(Trigger.new);
+
 
 
 

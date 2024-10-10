@@ -247,12 +247,47 @@ update allGardensWithTheirDeletedPlants;
 }
 
 
+// This method will handle both insert and update operations for Plant records.
+public static void beforeInsertUpdate(List<CAMPX__Plant__c> newPlants, Map<Id, CAMPX__Plant__c> oldVOfPlants) {
+    
+    // Retrieve the set of Garden IDs from the incoming plant records.
+    Set<Id> gardenIds = new Set<Id>();
+    for (CAMPX__Plant__c plant : newPlants) {
+        if (plant.CAMPX__Garden__c != null) {
+            gardenIds.add(plant.CAMPX__Garden__c);
+        }
+    }
+    
+    // Query the Garden records that match the IDs and have a status of 'Permanent Closure'.
+    Map<Id, CAMPX__Garden__c> closedGardens = new Map<Id, CAMPX__Garden__c>(
+        [SELECT Id, CAMPX__Status__c FROM CAMPX__Garden__c WHERE Id IN :gardenIds AND CAMPX__Status__c = 'Permanent Closure']
+    );
+    
+    // Loop through the plant records and check if any are associated with closed gardens.
+    for (CAMPX__Plant__c plant : newPlants) {
+        if (plant.CAMPX__Garden__c != null && closedGardens.containsKey(plant.CAMPX__Garden__c)) {
+            plant.addError('The garden selected for this plant is permanently closed. Please select a different garden.');
+        }
+
+
+            // Check if it's an update and if the garden has been changed to a closed garden
+            if(oldVOfPlants != null  && oldVOfPlants.containsKey(plant.Id)){
+               CAMPX__Plant__c oldVersionOfPlant = oldVOfPlants.get(plant.Id);
+
+               // Only throw error if the Garden was changed to a closed Garden
+               if(oldVersionOfPlant.CAMPX__Garden__c != plant.CAMPX__Garden__c && plant.CAMPX__Garden__r.CAMPX__Status__c == 'Permanent Closure'){
+                   plant.addError('The garden selected for this plant is permanently closed. Please select a different garden.');
+               }
+            } 
+        }
+    }
+}
 
 
 
 
     
-}
+
 
 
 
